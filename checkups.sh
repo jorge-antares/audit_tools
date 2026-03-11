@@ -1,7 +1,44 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-NGINX_ERROR_LOG_PATH="${1:-}"
+usage() {
+  echo "Usage: $0 [-a|--accesslog <path>] [-e|--errorlog <path>]"
+}
+
+NGINX_ERROR_LOG_PATH=""
+NGINX_ACCESS_LOG_PATH=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -a|--accesslog)
+      if [[ $# -lt 2 ]]; then
+        echo "Missing value for $1" >&2
+        usage >&2
+        exit 1
+      fi
+      NGINX_ACCESS_LOG_PATH="$2"
+      shift 2
+      ;;
+    -e|--errorlog)
+      if [[ $# -lt 2 ]]; then
+        echo "Missing value for $1" >&2
+        usage >&2
+        exit 1
+      fi
+      NGINX_ERROR_LOG_PATH="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
 
 echo "==== Security Audit Report ===="
 echo "Host: $(hostname -f 2>/dev/null || hostname)"
@@ -32,14 +69,15 @@ else
 fi
 echo
 echo "-- Top suspicious status codes in access.log (401/403/404/5xx) --"
-awk '$9 ~ /^(401|403|404|5[0-9][0-9])$/ {print $9}' /var/log/nginx/access.log 2>/dev/null \
-  | sort | uniq -c | sort -nr || echo "No nginx access log found."
+if [[ -z "$NGINX_ACCESS_LOG_PATH" ]]; then
+  echo "No Nginx access log provided"
+else
+  awk '$9 ~ /^(401|403|404|5[0-9][0-9])$/ {print $9}' "$NGINX_ACCESS_LOG_PATH" 2>/dev/null \
+    | sort | uniq -c | sort -nr || echo "No nginx access log found at: $NGINX_ACCESS_LOG_PATH"
+fi
 echo
 
 echo "==[ 4) Hardening quick checks ]=="
-echo "-- UFW --"
-ufw status verbose 2>/dev/null || echo "UFW not installed/configured."
-echo
 echo "-- SSH config (PermitRootLogin / PasswordAuthentication) --"
 grep -E "^(PermitRootLogin|PasswordAuthentication)" /etc/ssh/sshd_config 2>/dev/null || true
 echo

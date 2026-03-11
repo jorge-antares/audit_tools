@@ -4,20 +4,20 @@ Audit Tools
 Small collection of bash scripts to perform basic audits on an Ubuntu server.
 
 Files
-- checkups.sh: system security audit. Prints a report to stdout. Optional argument: path to Nginx error log.
+- checkups.sh: system security audit. Prints a report to stdout. Optional flags: Nginx access and error log paths.
 - nginxchecks.sh: analyzes an Nginx access log and prints counts (methods, status classes, top IPs, top paths).
 
 Usage
-- Run `checkups.sh` optionally passing an Nginx error log path:
+- Run `checkups.sh` with optional access and error log flags:
 
 ```bash
-./checkups.sh [path-to-nginx-error-log]
+./checkups.sh --accesslog /var/log/nginx/access.log --errorlog /var/log/nginx/error.log
 ```
 
 - Run `nginxchecks.sh` with the access log path:
 
 ```bash
-./nginxchecks.sh /var/log/nginx/access.log
+./nginxchecks.sh --accesslog /var/log/nginx/access.log --errorlog /var/log/nginx/error.log
 ```
 
 Notes
