@@ -1,0 +1,150 @@
+# fail2ban jail configuration for Nginx (dockerised, logs on host)
+# March 2026
+#
+# INSTRUCTIONS:
+# 1) sudo cp jail.local /etc/fail2ban/jail.local
+# 2) sudo vim /etc/fail2ban/jail.local (set logsdir)
+# 3) sudo cp filter.d/*.conf /etc/fail2ban/filter.d/
+# 4) sudo cp action.d/*.conf /etc/fail2ban/action.d/
+# 5) sudo systemctl restart fail2ban
+#
+# IMPORTANT: set 'logsdir' below to the absolute host path of nginx/log/
+
+[DEFAULT]
+logsdir = /absolute/path/to/project/nginx/log
+bantime  = 1h
+findtime = 10m
+maxretry = 5
+banaction = iptables-multiport-forward[chain=DOCKER-USER]
+banaction_allports = iptables-allports-forward[chain=DOCKER-USER]
+
+# ---------------------------------------------------------------------------
+# Default jails
+# ---------------------------------------------------------------------------
+
+[nginx-bad-request]
+enabled  = true
+backend = auto
+port     = http,https
+filter   = nginx-bad-request
+logpath  = %(logsdir)s/access.log
+
+[nginx-botsearch]
+enabled  = true
+backend = auto
+port     = http,https
+filter   = nginx-botsearch
+logpath  = %(logsdir)s/access.log
+maxretry = 2
+bantime  = 2h
+
+[nginx-http-auth]
+enabled = true
+backend = auto
+port = http,https
+logpath = %(logsdir)s/error.log
+
+[nginx-limit-req]
+enabled = true
+backend = auto
+port = http,https
+logpath = %(logsdir)s/error.log
+
+# ---------------------------------------------------------------------------
+# New jails
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Block clients that repeatedly trigger Nginx's rate limiter (HTTP 429).
+# Relies on the custom filter defined in filter.d/nginx-req-limit.conf.
+# ---------------------------------------------------------------------------
+[nginx-req-limit]
+enabled  = true
+backend  = auto
+port     = http,https
+filter   = nginx-req-limit
+logpath  = %(logsdir)s/access.log
+# Allow a handful of bursts before banning (the nginx burst=20 setting already
+# absorbs short spikes; this catches sustained abuse).
+maxretry = 20
+findtime = 1m
+bantime  = 10m
+
+
+# ---------------------------------------------------------------------------
+# Block clients that send requests for PHP/script files.
+# Nginx is configured to return 444 for these; the custom filter catches them.
+# ---------------------------------------------------------------------------
+[nginx-noscript]
+enabled  = true
+backend  = auto
+port     = http,https
+filter   = nginx-noscript
+logpath  = %(logsdir)s/access.log
+maxretry = 2
+findtime = 1m
+bantime  = 24h
+
+
+# ---------------------------------------------------------------------------
+# Block known bad bots / scraper user-agents.
+# Uses the built-in nginx-badbots filter (based on apache-badbots patterns).
+# ---------------------------------------------------------------------------
+[nginx-badbots]
+enabled  = true
+backend  = auto
+port     = http,https
+filter   = nginx-badbots
+logpath  = %(logsdir)s/access.log
+maxretry = 2
+findtime = 1m
+bantime  = 24h
+
+
+# ---------------------------------------------------------------------------
+# Block clients using non-standard HTTP methods (CONNECT, TRACE, etc.).
+# Nginx returns 405 for any method outside GET|POST|HEAD|PUT|DELETE.
+# Relies on the custom filter defined in filter.d/nginx-badmethod.conf.
+# ---------------------------------------------------------------------------
+[nginx-badmethod]
+enabled  = true
+backend  = auto
+port     = http,https
+filter   = nginx-badmethod
+logpath  = %(logsdir)s/access.log
+maxretry = 5
+findtime = 5m
+bantime  = 24h
+
+
+# ---------------------------------------------------------------------------
+# Block clients probing for secrets, backups, config files, or using
+# path-traversal / hidden-file techniques (all return 404 in nginx.conf).
+# Relies on the custom filter defined in filter.d/nginx-sensitivefiles.conf.
+# ---------------------------------------------------------------------------
+[nginx-sensitivefiles]
+enabled  = true
+backend  = auto
+port     = http,https
+filter   = nginx-sensitivefiles
+logpath  = %(logsdir)s/access.log
+maxretry = 3
+findtime = 1m
+bantime  = 24h
+
+
+# ---------------------------------------------------------------------------
+# Block scanner and bot user-agents that Nginx returns 403 to.
+# Relies on the custom filter defined in filter.d/nginx-baduseragent.conf.
+# ---------------------------------------------------------------------------
+[nginx-baduseragent]
+enabled  = true
+backend  = auto
+port     = http,https
+filter   = nginx-baduseragent
+logpath  = %(logsdir)s/access.log
+maxretry = 2
+findtime = 1m
+bantime  = 24h
+
+
