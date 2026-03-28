@@ -19,8 +19,8 @@ if ! [[ "$TRUSTED_IP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}(/[0-9]{1,2})?$ ]]; then
 fi
 
 # Flush existing rules and delete custom chains
-iptables -F
-iptables -X
+#iptables -F
+#iptables -X
 
 # Allow loopback interface
 iptables -A INPUT -i lo -j ACCEPT
