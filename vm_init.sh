@@ -70,8 +70,8 @@ if command -v ip6tables &>/dev/null; then
     ip6tables -A INPUT -i lo -j ACCEPT
     ip6tables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
     ip6tables -A INPUT -p ipv6-icmp -j ACCEPT
-    ip6tables -A INPUT -p tcp --dport 80 -j ACCEPT
-    ip6tables -A INPUT -p tcp --dport 443 -j ACCEPT
+    #ip6tables -A INPUT -p tcp --dport 80 -j ACCEPT
+    #ip6tables -A INPUT -p tcp --dport 443 -j ACCEPT
     ip6tables -P INPUT DROP
     ip6tables -P FORWARD DROP
 fi
