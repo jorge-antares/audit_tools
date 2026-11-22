@@ -21,7 +21,7 @@ fi
 
 # Flush existing rules and delete custom chains
 # Policies are set to ACCEPT while rebuilding so a partial run cannot lock out SSH
-iptables -P INPUT ACCEPT
+#iptables -P INPUT ACCEPT
 iptables -F
 iptables -X
 
