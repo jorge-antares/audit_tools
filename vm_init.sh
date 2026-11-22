@@ -55,8 +55,8 @@ iptables -A INPUT -p tcp --dport 22 -s "$TRUSTED_IP" -j ACCEPT
 iptables -A INPUT -p tcp --dport 22 -j DROP
 
 # HTTP and HTTPS
-iptables -A INPUT -p tcp --dport 80 -j ACCEPT
-iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+#iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+#iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 
 # Set default policies last (after all ACCEPT rules) to avoid lockout on error
 iptables -P INPUT DROP
