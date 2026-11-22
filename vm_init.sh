@@ -41,7 +41,7 @@ iptables -A INPUT -p tcp --tcp-flags SYN,RST SYN,RST -j DROP
 iptables -A INPUT -m conntrack --ctstate INVALID -j DROP
 
 # OCI: allow DHCP responses (required for dynamic IP assignment on OCI)
-iptables -A INPUT -p udp --sport 67 --dport 68 -j ACCEPT
+#iptables -A INPUT -p udp --sport 67 --dport 68 -j ACCEPT
 
 # OCI: allow link-local range (instance metadata service at 169.254.169.254,
 #      used by oracle-cloud-agent for monitoring and instance configuration)
